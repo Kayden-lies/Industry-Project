@@ -27,8 +27,8 @@ class ExecutionService:
     def __init__(self, session: AsyncSession, redis_client: Redis):
         self.session = session
         self.execution_repo = ExecutionRepository(session)
+        self.audit_service = AuditService(AuditRepository(session))
         self.audit_repo = AuditRepository(session)
-        self.audit_service = AuditService(self.audit_repo)
         self.redis_client = redis_client
 
     async def create_execution(self, payload: ExecutionCreate, actor: str):

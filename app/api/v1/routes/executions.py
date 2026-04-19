@@ -1,8 +1,6 @@
-from __future__ import annotations
-
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, status
 
@@ -17,9 +15,7 @@ from app.schemas.execution import (
     ExecutionSummaryResponse,
     ExecutionUpdate,
 )
-if TYPE_CHECKING:
-    from app.services.execution_service import ExecutionService
-
+from app.services.execution_service import ExecutionService
 
 router = APIRouter(prefix="/executions", tags=["executions"])
 

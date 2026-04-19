@@ -40,7 +40,6 @@ def upgrade() -> None:
     op.create_index("ix_executions_job_name", "executions", ["job_name"])
     op.create_index("ix_executions_status", "executions", ["status"])
     op.create_index("ix_executions_user", "executions", ["user"])
-    op.create_index("ix_executions_created_at", "executions", ["created_at"])
 
     op.create_table(
         "audit_logs",
@@ -63,7 +62,6 @@ def downgrade() -> None:
     op.drop_index("ix_audit_logs_execution_id", table_name="audit_logs")
     op.drop_table("audit_logs")
 
-    op.drop_index("ix_executions_created_at", table_name="executions")
     op.drop_index("ix_executions_user", table_name="executions")
     op.drop_index("ix_executions_status", table_name="executions")
     op.drop_index("ix_executions_job_name", table_name="executions")

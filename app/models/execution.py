@@ -34,9 +34,7 @@ class Execution(Base):
     inputs: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     outputs: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     error_details: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now(), index=True
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )

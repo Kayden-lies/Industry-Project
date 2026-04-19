@@ -25,7 +25,7 @@ class AuditService:
             "actor": actor,
             "timestamp": timestamp.isoformat(),
             "metadata": metadata or {},
-            "previous_hash": previous_hash,
+            "previous_hash": previous_hash or "",
         }
         canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
