@@ -1,0 +1,24 @@
+[project]
+name = "execution-tracking-service"
+version = "0.1.0"
+description = "Execution Tracking and Audit Service"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.116.0",
+  "uvicorn[standard]>=0.35.0",
+  "sqlalchemy[asyncio]>=2.0.38",
+  "asyncpg>=0.30.0",
+  "alembic>=1.16.4",
+  "redis>=6.2.0",
+  "pydantic-settings>=2.10.1",
+  "python-jose[cryptography]>=3.4.0",
+  "passlib[bcrypt]>=1.7.4",
+  "python-multipart>=0.0.20"
+]
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "B"]
