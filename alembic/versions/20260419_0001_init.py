@@ -17,7 +17,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # ✅ SAFE ENUM CREATION (NO DUPLICATE ERROR)
+    # ✅ SAFE ENUM CREATION (handles duplicate case)
     op.execute("""
     DO $$ BEGIN
         CREATE TYPE execution_status AS ENUM ('PENDING', 'RUNNING', 'COMPLETED', 'FAILED');
@@ -26,9 +26,11 @@ def upgrade() -> None:
     END $$;
     """)
 
+    # ✅ IMPORTANT: prevent SQLAlchemy from recreating enum
     execution_status_enum = sa.Enum(
         'PENDING', 'RUNNING', 'COMPLETED', 'FAILED',
-        name='execution_status'
+        name='execution_status',
+        create_type=False
     )
 
     # ✅ EXECUTIONS TABLE
@@ -80,5 +82,5 @@ def downgrade() -> None:
     op.drop_index("ix_executions_job_name", table_name="executions")
     op.drop_table("executions")
 
-    # Optional: drop enum safely
+    # Optional safe enum removal
     op.execute("DROP TYPE IF EXISTS execution_status")
