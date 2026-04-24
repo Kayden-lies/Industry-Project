@@ -16,7 +16,11 @@ branch_labels = None
 depends_on = None
 
 
-execution_status_enum = sa.Enum("PENDING", "RUNNING", "COMPLETED", "FAILED", name="execution_status")
+execution_status_enum = sa.Enum(
+    'PENDING', 'RUNNING', 'COMPLETED', 'FAILED',
+    name='execution_status',
+    create_type=False
+)
 
 
 def upgrade() -> None:
