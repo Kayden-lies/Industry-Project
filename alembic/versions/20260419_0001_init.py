@@ -1,7 +1,8 @@
+```python
 """init
 
 Revision ID: 20260419_0001
-Revises: 
+Revises:
 Create Date: 2026-04-19
 """
 
@@ -9,13 +10,14 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-# revision identifiers, used by Alembic.
+# revision identifiers
 revision = "20260419_0001"
 down_revision = None
 branch_labels = None
 depends_on = None
 
 
+# ✅ ENUM defined but NOT created (important fix)
 execution_status_enum = sa.Enum(
     'PENDING', 'RUNNING', 'COMPLETED', 'FAILED',
     name='execution_status',
@@ -24,7 +26,7 @@ execution_status_enum = sa.Enum(
 
 
 def upgrade() -> None:
-    execution_status_enum.create(op.get_bind(), checkfirst=True)
+    # ❌ REMOVED: execution_status_enum.create(...)
 
     op.create_table(
         "executions",
@@ -41,6 +43,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
     )
+
     op.create_index("ix_executions_job_name", "executions", ["job_name"])
     op.create_index("ix_executions_status", "executions", ["status"])
     op.create_index("ix_executions_user", "executions", ["user"])
@@ -57,6 +60,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(["execution_id"], ["executions.id"], ondelete="CASCADE"),
     )
+
     op.create_index("ix_audit_logs_execution_id", "audit_logs", ["execution_id"])
     op.create_index("ix_audit_logs_current_hash", "audit_logs", ["current_hash"])
 
@@ -71,4 +75,6 @@ def downgrade() -> None:
     op.drop_index("ix_executions_job_name", table_name="executions")
     op.drop_table("executions")
 
+    # Optional: keep or remove enum drop (safe either way)
     execution_status_enum.drop(op.get_bind(), checkfirst=True)
+```
