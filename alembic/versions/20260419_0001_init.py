@@ -9,7 +9,6 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-# revision identifiers
 revision = "20260419_0001"
 down_revision = None
 branch_labels = None
@@ -17,7 +16,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # ✅ SAFE ENUM CREATION (handles duplicate case)
+    # ✅ CREATE ENUM SAFELY
     op.execute("""
     DO $$ BEGIN
         CREATE TYPE execution_status AS ENUM ('PENDING', 'RUNNING', 'COMPLETED', 'FAILED');
@@ -26,20 +25,17 @@ def upgrade() -> None:
     END $$;
     """)
 
-    # ✅ IMPORTANT: prevent SQLAlchemy from recreating enum
-    execution_status_enum = sa.Enum(
-        'PENDING', 'RUNNING', 'COMPLETED', 'FAILED',
-        name='execution_status',
-        create_type=False
-    )
-
-    # ✅ EXECUTIONS TABLE
+    # ✅ USE RAW TYPE (NO SQLAlchemy ENUM)
     op.create_table(
         "executions",
-        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
+        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("job_name", sa.String(255), nullable=False),
         sa.Column("user", sa.String(255), nullable=False),
-        sa.Column("status", execution_status_enum, nullable=False),
+        sa.Column("status", postgresql.ENUM(
+            'PENDING', 'RUNNING', 'COMPLETED', 'FAILED',
+            name='execution_status',
+            create_type=False
+        ), nullable=False),
         sa.Column("started_at", sa.DateTime(timezone=True)),
         sa.Column("completed_at", sa.DateTime(timezone=True)),
         sa.Column("duration_seconds", sa.Float()),
@@ -54,10 +50,9 @@ def upgrade() -> None:
     op.create_index("ix_executions_status", "executions", ["status"])
     op.create_index("ix_executions_user", "executions", ["user"])
 
-    # ✅ AUDIT LOGS TABLE
     op.create_table(
         "audit_logs",
-        sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
+        sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("execution_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("action", sa.String(100), nullable=False),
         sa.Column("actor", sa.String(255), nullable=False),
@@ -68,19 +63,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["execution_id"], ["executions.id"], ondelete="CASCADE"),
     )
 
-    op.create_index("ix_audit_logs_execution_id", "audit_logs", ["execution_id"])
-    op.create_index("ix_audit_logs_current_hash", "audit_logs", ["current_hash"])
-
 
 def downgrade() -> None:
-    op.drop_index("ix_audit_logs_current_hash", table_name="audit_logs")
-    op.drop_index("ix_audit_logs_execution_id", table_name="audit_logs")
     op.drop_table("audit_logs")
-
-    op.drop_index("ix_executions_user", table_name="executions")
-    op.drop_index("ix_executions_status", table_name="executions")
-    op.drop_index("ix_executions_job_name", table_name="executions")
     op.drop_table("executions")
-
-    # Optional safe enum removal
-    op.execute("DROP TYPE IF EXISTS execution_status")
